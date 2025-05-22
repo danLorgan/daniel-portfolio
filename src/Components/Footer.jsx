@@ -51,7 +51,7 @@ const Footer = () => {
             viewport={{ once: true }}
           >
             <p className="text-gray-400 text-sm">
-              &copy; {new Date().getFullYear()} YourName. All rights reserved.
+              &copy; {new Date().getFullYear()} Daniel. All rights reserved.
             </p>
           </motion.div>
         </div>
