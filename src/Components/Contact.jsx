@@ -1,16 +1,16 @@
 import { motion } from 'framer-motion'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { FiMail, FiPhone, FiMapPin } from 'react-icons/fi'
-import emailjs from '@emailjs/browser'
+import { useForm, ValidationError } from '@formspree/react'
 
 const Contact = () => {
+  const [state, handleSubmit] = useForm("mgvkbbbb")
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     message: ''
   })
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitStatus, setSubmitStatus] = useState(null)
+  const [showSuccess, setShowSuccess] = useState(false)
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -20,27 +20,23 @@ const Contact = () => {
     }))
   }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setIsSubmitting(true)
-    
-    try {
-      await emailjs.send(
-        'YOUR_SERVICE_ID', // Replace with your EmailJS service ID
-        'YOUR_TEMPLATE_ID', // Replace with your EmailJS template ID
-        formData,
-        'YOUR_PUBLIC_KEY' // Replace with your EmailJS public key
-      )
-      setSubmitStatus('success')
-      setFormData({ name: '', email: '', message: '' })
-    } catch (error) {
-      console.error('Error sending email:', error)
-      setSubmitStatus('error')
-    } finally {
-      setIsSubmitting(false)
-      setTimeout(() => setSubmitStatus(null), 5000)
+  useEffect(() => {
+    if (state.succeeded) {
+      // Reset form fields
+      setFormData({
+        name: '',
+        email: '',
+        message: ''
+      })
+      // Show success message
+      setShowSuccess(true)
+      // Hide success message after 5 seconds
+      const timer = setTimeout(() => {
+        setShowSuccess(false)
+      }, 5000)
+      return () => clearTimeout(timer)
     }
-  }
+  }, [state.succeeded])
 
   return (
     <section id="contact" className="py-20">
@@ -118,6 +114,12 @@ const Contact = () => {
                   required
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                 />
+                <ValidationError 
+                  prefix="Name" 
+                  field="name"
+                  errors={state.errors}
+                  className="text-red-500 text-sm mt-1"
+                />
               </div>
               
               <div>
@@ -130,6 +132,12 @@ const Contact = () => {
                   onChange={handleChange}
                   required
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                />
+                <ValidationError 
+                  prefix="Email" 
+                  field="email"
+                  errors={state.errors}
+                  className="text-red-500 text-sm mt-1"
                 />
               </div>
               
@@ -144,25 +152,25 @@ const Contact = () => {
                   required
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                 ></textarea>
+                <ValidationError 
+                  prefix="Message" 
+                  field="message"
+                  errors={state.errors}
+                  className="text-red-500 text-sm mt-1"
+                />
               </div>
               
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={state.submitting}
                 className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? 'Sending...' : 'Send Message'}
+                {state.submitting ? 'Sending...' : 'Send Message'}
               </button>
               
-              {submitStatus === 'success' && (
+              {showSuccess && (
                 <div className="p-3 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded-lg">
                   Message sent successfully! I'll get back to you soon.
-                </div>
-              )}
-              
-              {submitStatus === 'error' && (
-                <div className="p-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg">
-                  There was an error sending your message. Please try again later.
                 </div>
               )}
             </form>
